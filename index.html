@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;background:#0b0b0b;color:#fff;font-family:Arial}
+header{padding:16px;background:#111;font-size:22px}
+.grid{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,140px);gap:14px}
+.card{cursor:pointer}
+.card img{width:100%;border-radius:6px}
+#player{display:none;padding:16px}
+video{width:100%;background:#000;border-radius:8px}
+.back{color:#4da3ff;cursor:pointer;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header>hotstar</header>
+<div id="home" class="grid"></div>
+
+<div id="player">
+  <div class="back" onclick="goHome()">← Back</div>
+  <video id="video" controls autoplay></video>
+</div>
+
+<script>
+const BASE = "https://www.hotstar.com/api/internal/bff/v2";
+
+/* ================= EXACT HEADERS ================= */
+
+const HEADERS = {
+  "Reqable-Id": "",
+  "Host": "",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+  "Connection": "keep-alive",
+  "Accept": "application/json, text/plain, */*",
+  "Accept-Encoding": "gzip, deflate, br",
+  "Cookie": "SELECTED__LANGUAGE=eng; deviceId=3e35ec-412fa8-820799-798830; x-hs-setproxystate-ud=loc; userCountryCode=in; _ga=GA1.1.1049084762.1756047642; _uetvid=1bf64a4080fb11f0b2da25b16cfddce6; _ga_VJTFGHZ5NH=GS2.2.s1756098080$o2$g0$t1756098080$j60$l0$h0; _ga_2PV8LWETCX=GS2.1.s1756100300$o3$g0$t1756100300$j60$l0$h0; _ga_EPJ8DYH89Z=GS2.1.s1756100300$o3$g0$t1756100300$j60$l0$h0; _ga_QV5FD29XJC=GS2.1.s1756100300$o3$g0$t1756100300$j60$l0$h0; seo-referrer=; loc=ENj36coGKAMipgJR15TloYxPt1VfnGKfx9Znq31D9nRvr60%2FhbuIhBX84n4pPV2JJceCOwjXISCag2lVjCFrGE99UNmCycCwbU%2BUu6zGqwdowsGwZVkOZJRrSjyoRAzYIZTAmyQCyD6%2BkvbpGnptf2dL3NXu2LyNZetS%2BICAkGwzqMKyRTUb91oUHR9usyzZy3NRgLbDoecyXpRARz2o3UhLi0YjiaXBZO3bisJuf1J%2BXYW%2BCebNw7WKrZ8hw5r9FeVRWzQhwPCybNszVsnz482%2B6cODZ%2Fy3Bsq3kEAgUFwcuYb%2BWL5Zaqi4fcjy6TtQHylu6PfclTWV1j81JNxk95lfohQdNQpw%2BXak24w%2Fji04eUDV6K1d%2F5E%2F1jsc%2BDy2JL8nHOggOmbPFxVxCLrOl%2F4%3D; userUP=eyJhbGciOiJIUzI1NiJ9....; userHID=c94fad20e876487e9dacd2e7a6f0198a; userPID=ee5202baf63d4de3a5a04173340a9e71; appLaunchCounter=2",
+  "accept-language": "eng",
+  "baggage": "sentry-environment=prod,sentry-release=25.12.19.0-2025-12-19T09%3A31%3A27,...",
+  "cache-control": "no-cache",
+  "pragma": "no-cache",
+  "priority": "u=1, i",
+  "referer": "https://www.hotstar.com/in/shows/naagin/1971002157",
+  "sec-ch-ua": "\"Microsoft Edge\";v=\"143\", \"Chromium\";v=\"143\", \"Not A(Brand\";v=\"24\"",
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": "\"Windows\"",
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin",
+  "sentry-trace": "8c14048bd7984847a8483c1dc52c91fa-b3a09a5234a7104f-0",
+  "x-country-code": "in",
+  "x-hs-accept-language": "eng",
+  "x-hs-app": "251219000",
+  "x-hs-client": "platform:web;app_version:25.12.19.0;browser:Edge;schema_version:0.0.1613;os:Windows;os_version:10;browser_version:143;network_data:4g",
+  "x-hs-client-cache-state": "FT=CJecjwEQj/jpygYiCAjQDxCA9O4G",
+  "x-hs-client-targeting": "ad_id:3e35ec-412fa8-820799-798830;user_lat:false;",
+  "x-hs-device-id": "3e35ec-412fa8-820799-798830",
+  "x-hs-is-retry": "false",
+  "x-hs-platform": "web",
+  "x-hs-proxystate": "AB=CICjBRCg+OnKBiIA,...",
+  "x-hs-proxystate-ud": "loc=ENj36coGKAMipgJR15TloYxPt1VfnGKfx9Znq31D9nRvr60/...",
+  "x-hs-request-id": "51fa9c-2959ac-534b41-5974f",
+  "x-hs-retry-count": "0",
+  "x-hs-usertoken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ7XCJoSWRcIjpcImM5NGZhZDIwZTg3NjQ4N2U5ZGFjZDJlN2E2ZjAxOThhXCIsXCJwSWRcIjpcImVlNTIwMmJhZjYzZDRkZTNhNWEwNDE3MzM0MGE5ZTcxXCIsXCJkd0hpZFwiOlwiMDIzZWNhZDhkMDcxY2MzNTMyZjNjMTM3OWZhZjU5YjFhZWZjNWIwNmRmYmM5NTQ4NWVhYmIwZjc2ODBkODYyNVwiLFwiZHdQaWRcIjpcIjQ3MGIwMmNhZWU3MmMzMzNhODY1MmZlYzQ3MzlkNGI1MzIyNWE5OTQ2NDk4YWIwOWM3NWNlZWI0MTRiMGM5MzZcIixcIm9sZEhpZFwiOlwiYzk0ZmFkMjBlODc2NDg3ZTlkYWNkMmU3YTZmMDE5OGFcIixcIm9sZFBpZFwiOlwiZWU1MjAyYmFmNjNkNGRlM2E1YTA0MTczMzQwYTllNzFcIixcImlzUGlpVXNlck1pZ3JhdGVkXCI6ZmFsc2UsXCJuYW1lXCI6XCJSb2hhbiBTaW5naFwiLFwicGhvbmVcIjpcIjkxNDIyNTQzNTNcIixcImlwXCI6XCIyNDA1OjIwMTphNDE2OjMwYzk6MzRmMzo4YWQ3OmVmNzY6YzQyNlwiLFwiY291bnRyeUNvZGVcIjpcImluXCIsXCJjdXN0b21lclR5cGVcIjpcIm51XCIsXCJ0eXBlXCI6XCJwaG9uZVwiLFwiaXNFbWFpbFZlcmlmaWVkXCI6ZmFsc2UsXCJpc1Bob25lVmVyaWZpZWRcIjp0cnVlLFwiZGV2aWNlSWRcIjpcIjNlMzVlYy00MTJmYTgtODIwNzk5LTc5ODgzMFwiLFwicHJvZmlsZVwiOlwiQURVTFRcIixcInZlcnNpb25cIjpcInYyXCIsXCJzdWJzY3JpcHRpb25zXCI6e1wiaW5cIjp7fX0sXCJlbnRcIjpcIkNpSUtHZ29JSWdabWFYSmxkSFlLRGhJRk5UVTRNellTQlRZME1EUTVFZ1E0WkZnQkNnc1NDUWdLT0FGUTBBVllBUXJLQVFvRkNnTUtBUUFTd0FFU0IyRnVaSEp2YVdRU0EybHZjeElKWVc1a2NtOXBaSFIyRWdabWFYSmxkSFlTQjJGd2NHeGxkSFlTQkhKdmEzVVNBM2RsWWhJRWJYZGxZaElIZEdsNlpXNTBkaElGZDJWaWIzTVNCbXBwYjNOMFloSUtZMmh5YjIxbFkyRnpkQklFZEhadmN4SUVjR04wZGhJRGFtbHZFZ2RxYVc4dGJIbG1FZ1I0WW05NEVndHdiR0Y1YzNSaGRHbHZiaElNYW1sdmNHaHZibVZzYVhSbEVnMW1aV0YwZFhKbGJXOWlhV3hsR2dKelpCb0NhR1FpQTNOa2Npb0djM1JsY21WdldBRVNMUWdCSUFFd0FUb2xDaUZJYjNSemRHRnlVM1Z3WlhJdVFXUnpSbkpsWlM1SlRpNVpaV0Z5TGpFd09Ua1FBUT09XCIsXCJpc3N1ZWRBdFwiOjE3Njc1Mzc2Nzg0MzQsXCJpbWdcIjpcIlwiLFwiZHBpZFwiOlwiZWU1MjAyYmFmNjNkNGRlM2E1YTA0MTczMzQwYTllNzFcIixcInN0XCI6MSxcImRhdGFcIjpcIkNnUUlBQklBQ2dRSUFDb0FDZ1FJQURvQUNoSUlBQ0lPZ0FFU2lBRUJrQUdMdmR1aHBUTUtCQWdBUWdBS0JBZ0FNZ0E9XCJ9IiwiaXNzIjoiVU0iLCJleHAiOjE3Njc2MjQwNzgsImp0aSI6ImFiOTY4MWUxNjVkNjQ2MWY4Y2ZkZjZlMjM1NGQ3ZjA3IiwiaWF0IjoxNzY3NTM3Njc4LCJhcHBJZCI6IiIsInRlbmFudCI6IiIsInZlcnNpb24iOiIxXzAiLCJhdWQiOiJ1bV9hY2Nlc3MifQ.yWzw3VvguwwxNIOy5e7wrC-z6vV3WzOInIWmFXUVW_E",
+  "x-request-id": "51fa9c-2959ac-534b41-5974f"
+};
+
+/* ================= START ================= */
+
+async function loadHome() {
+  const res = await fetch(`${BASE}/start`, {
+    method: "POST",
+    headers: HEADERS,
+    credentials: "include",
+    body: JSON.stringify({
+      deeplink_url: "/in/shows/naagin/1971002157",
+      app_launch_count: 2
+    })
+  });
+  const data = await res.json();
+  render(data);
+}
+
+function render(data) {
+  const home = document.getElementById("home");
+  home.innerHTML = "";
+  (data?.page?.items || []).forEach(item => {
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = `<img src="https://img10.hotstar.com/image/upload/f_auto,h_124/${item.images.poster.path}">`;
+    d.onclick = () => openEpisode(item);
+    home.appendChild(d);
+  });
+}
+
+async function openEpisode(item) {
+  home.style.display = "none";
+  player.style.display = "block";
+
+  const url =
+    `${BASE}/slugs/in/shows/${item.showSlug}/${item.showId}/${item.slug}/${item.id}/watch?client_capabilities={"ads":["non_ssai"],"audio_channel":["stereo"],"container":["fmp4","fmp4br","ts"],"dvr":["short"],"dynamic_range":["sdr"],"encryption":["","plain"],"ladder":["web","tv","phone"],"package":["","hls"],"resolution":["sd","hd","fhd"],"video_codec":["h264"],"video_codec_non_secure":["h264"]}&drm_parameters={"hdcp_version":["HDCP_V2_2"],"widevine_security_level":["SW_SECURE_DECODE"],"playready_security_level":[]}&request_features=consent_supported`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: HEADERS,
+    credentials: "include"
+  });
+
+  const data = await res.json();
+  const hls = data.playback.sources.find(s => s.url.includes(".m3u8"));
+  video.src = hls.url;
+}
+
+function goHome() {
+  video.pause();
+  video.src = "";
+  player.style.display = "none";
+  home.style.display = "grid";
+}
+
+loadHome();
+</script>
+</body>
+</html>
