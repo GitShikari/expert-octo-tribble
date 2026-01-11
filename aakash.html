@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aakash Exam Launcher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    background:#0f172a;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#e5e7eb;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.container{
+    background:#020617;
+    padding:24px;
+    width:320px;
+    border-radius:12px;
+    box-shadow:0 0 20px rgba(0,0,0,.6);
+}
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin-bottom:12px;
+    border-radius:6px;
+    border:none;
+    outline:none;
+}
+button{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    margin-top:10px;
+    font-weight:bold;
+    cursor:pointer;
+}
+#getLink{
+    background:#2563eb;
+    color:white;
+}
+.action{
+    background:#16a34a;
+    color:white;
+    display:none;
+}
+.error{
+    color:#f87171;
+    text-align:center;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h2>Aakash Exam</h2>
+
+    <input id="examCode" placeholder="Exam Short Code">
+    <input id="scheduleId" placeholder="External Schedule ID">
+
+    <button id="getLink">Get Exam Link</button>
+
+    <button id="giveTest" class="action">GIVE TEST</button>
+    <button id="checkResult" class="action">CHECK RESULT</button>
+
+    <div class="error" id="error"></div>
+</div>
+
+<script>
+let examUrl = "";
+
+document.getElementById("getLink").onclick = async () => {
+    document.getElementById("error").textContent = "";
+
+    const exam_short_code = document.getElementById("examCode").value.trim();
+    const external_schedule_id = document.getElementById("scheduleId").value.trim();
+
+    if(!exam_short_code || !external_schedule_id){
+        document.getElementById("error").textContent = "All fields required";
+        return;
+    }
+
+    try{
+        const res = await fetch("https://antheapi.aakash.ac.in/examapi/get_exam_link",{
+            method:"POST",
+            headers:{
+                "Accept":"application/json, text/plain, */*",
+                "Content-Type":"application/json",
+                "User-Agent":"Mozilla/5.0",
+                "origin":"https://jee-mocktest.aakash.ac.in",
+                "referer":"https://jee-mocktest.aakash.ac.in/",
+                "token":"OTQ4NDc0NDEzMjI2MjAyOTk1MzQzMS0tMTc2NzUzNDA2MS0tTU9DSy1KRUU="
+            },
+            body:JSON.stringify({
+                tenant_id:"be0de013-fe4d-11ee-ad85-0288ab69f014",
+                user_id:"441322620299",
+                exam_short_code,
+                external_schedule_id,
+                exam_start_time:"2026-01-11T08:11:12.789Z",
+                exam_end_time:"2026-01-13T05:30:00.000Z",
+                result_date_time:"2026-01-13T05:30:00.000+05:30",
+                dob:"2000-01-01T18:30Z",
+                stream:"13&SOE",
+                groups:{ state:null },
+                attempt_state:"live",
+                event_type:"exam",
+                reset_cutoff_time:"2026-01-13T05:30:00.000+05:30",
+                klass:"12",
+                we_user_id:""
+            })
+        });
+
+        const data = await res.json();
+
+        examUrl = data?.data?.exam_url;
+
+        if(!examUrl) throw "Invalid response";
+
+        document.getElementById("giveTest").style.display="block";
+        document.getElementById("checkResult").style.display="block";
+
+    }catch(e){
+        document.getElementById("error").textContent="Failed to get exam link";
+    }
+};
+
+document.getElementById("giveTest").onclick = () => {
+    window.open(examUrl,"_blank");
+};
+
+document.getElementById("checkResult").onclick = () => {
+    window.open(examUrl,"_blank");
+};
+</script>
+</body>
+</html>
